@@ -30,12 +30,13 @@ Hnefatafl Terminal is a terminal-based implementation of the ancient Viking boar
 
 1. Start the server:
     ```sh
-    cargo run --bin hnefatafl
+    cargo run
     ```
 
 2. Connect a client:
+    Copy the client_example.rs code to a new project and 
     ```sh
-    cargo run --bin client_example
+    cargo run
     ```
 3. For the game to start, connect two clients from two different terminals.
 
