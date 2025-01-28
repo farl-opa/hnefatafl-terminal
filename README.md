@@ -37,6 +37,7 @@ Hnefatafl Terminal is a terminal-based implementation of the ancient Viking boar
     ```sh
     cargo run --bin client_example
     ```
+3. For the game to start, connect two clients from two different terminals.
 
 ## Project Structure
 
