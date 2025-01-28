@@ -46,13 +46,6 @@ Hnefatafl Terminal is a terminal-based implementation of the ancient Viking boar
 - `src/brandubh.rs`: Contains the game logic and data structures.
 - `Cargo.toml`: Project dependencies and metadata.
 
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgements
 
