@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::io::{self, Write, Read};
 use std::net::TcpStream;
 use serde::{Serialize, Deserialize};
-use rand::Rng;
+use rand::random_range;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Move {
@@ -121,7 +121,6 @@ fn main() -> io::Result<()> {
 }
 
 fn send_move(stream: &mut TcpStream, board: &HashMap<String, String>, role: &str) -> io::Result<()> {
-    let mut rng = rand::thread_rng();
     let mut pieces: Vec<(usize, usize)> = Vec::new();
 
     // Collect all pieces of the current player
@@ -135,9 +134,9 @@ fn send_move(stream: &mut TcpStream, board: &HashMap<String, String>, role: &str
     // Find a random valid move
     loop {
         // Select a random piece
-        let piece = pieces[rng.gen_range(0..pieces.len())];
+        let piece = pieces[random_range(0..pieces.len())];
         let directions = vec![(1, 0), (-1, 0), (0, 1), (0, -1)];
-        let direction = directions[rng.gen_range(0..directions.len())];
+        let direction = directions[random_range(0..directions.len())];
 
         // Start from the piece's position
         let mut to = (piece.0 as isize, piece.1 as isize);
@@ -181,7 +180,7 @@ fn send_move(stream: &mut TcpStream, board: &HashMap<String, String>, role: &str
         }
 
         // Choose a random valid position to move to
-        let random_destination = valid_positions[rng.gen_range(0..valid_positions.len())];
+        let random_destination = valid_positions[random_range(0..valid_positions.len())];
 
         // Send the move to the server
         let game_move = Move {
