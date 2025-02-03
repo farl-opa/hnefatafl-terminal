@@ -34,11 +34,16 @@ Hnefatafl Terminal is a terminal-based implementation of the ancient Viking boar
     ```
 
 2. Connect a client:
-    Copy the client_example.rs code to a new project and 
+    Copy the client_example.rs code to a new project, add the random crate to your cargo.toml file,
+    ```sh
+    [dependencies]
+    rand = "0.9"
+    ```
+    then connect your client to the server 
     ```sh
     cargo run
     ```
-3. For the game to start, connect two clients from two different terminals.
+4. For the game to start, connect two clients from two different terminals.
 
 ## Project Structure
 
