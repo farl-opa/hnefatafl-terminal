@@ -57,7 +57,7 @@ Hnefatafl Terminal is a terminal-based implementation of the ancient Viking boar
 
 ## Switching between game modes
 
-On lines 8-14 of main.rs you can choose whether to play 7x7 or 11x11:
+On lines 8-14 of main.rs you can choose whether to play 7x7 or 11x11, make sure to use the correct client:
 
 ```sh
     mod brandubh;
