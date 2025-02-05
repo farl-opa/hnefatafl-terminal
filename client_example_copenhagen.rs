@@ -151,15 +151,18 @@ fn send_move(stream: &mut TcpStream, board: &HashMap<String, String>, role: &str
                 break;
             }
 
-            // Check if the destination is a corner or the middle of the board
-            if (to.0 == 0 && to.1 == 0)
-                || (to.0 == 0 && to.1 == 10)
-                || (to.0 == 10 && to.1 == 0)
-                || (to.0 == 10 && to.1 == 10)
-                || (to.0 == 5 && to.1 == 5)
-            {
-                break;
-            }
+            let piece_role = board.get(&format!("({}, {})", piece.0, piece.1)).unwrap().clone();
+            if !(role == "Defender" && piece_role == "King") {
+                // Check if the destination is a corner or the middle of the board
+                if (to.0 == 0 && to.1 == 0)
+                    || (to.0 == 0 && to.1 == 10)
+                    || (to.0 == 10 && to.1 == 0)
+                    || (to.0 == 10 && to.1 == 10)
+                    || (to.0 == 5 && to.1 == 5)
+                {
+                    break;
+                }
+            } 
 
             // Check if the cell is empty
             if board
