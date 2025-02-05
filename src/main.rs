@@ -116,7 +116,7 @@ fn process_move(
     
     let file_name = {
         let stats_lock = stats.lock().unwrap();
-        format!("board_state_game_{}_{}.txt", stats_lock.game_id, stats_lock.total_games + 1)
+        format!("results/board_state_game_{}_{}.txt", stats_lock.game_id, stats_lock.total_games + 1)
     };
 
     let mut file = OpenOptions::new()
@@ -308,7 +308,7 @@ fn initialize_game(
     
     let file_name = {
         let stats_lock = stats.lock().unwrap();
-        format!("board_state_game_{}_{}.txt", stats_lock.game_id, stats_lock.total_games + 1)
+        format!("results/board_state_game_{}_{}.txt", stats_lock.game_id, stats_lock.total_games + 1)
     };
 
     let mut file = File::create(&file_name).expect("Unable to create file");
