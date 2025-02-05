@@ -49,5 +49,5 @@ def main(file_path):
     plt.show()
 
 if __name__ == "__main__":
-    file_path = "board_state_game_1_5.txt"
+    file_path = "board_state_game_1_1.txt"
     main(file_path)

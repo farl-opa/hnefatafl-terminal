@@ -200,7 +200,7 @@ fn handle_client(
                     }
                     game.winner = None;
 
-                    if guard_stats.total_games >= 5 {
+                    if guard_stats.total_games >= 50 {
                         println!("All games finished for session {}.", guard_stats.game_id);
                         println!(
                             "Average attacker moves: {:.2}",
@@ -220,6 +220,18 @@ fn handle_client(
                         );
                         println!("Attacker wins: {}", guard_stats.attacker_wins);
                         println!("Defender wins: {}", guard_stats.defender_wins);
+
+                        let results_file_name = format!("results_session_{}.txt", guard_stats.game_id);
+                        let mut results_file = File::create(&results_file_name).expect("Unable to create results file");
+                        writeln!(results_file, "Session ID: {}", guard_stats.game_id).expect("Unable to write to results file");
+                        writeln!(results_file, "Total games: {}", guard_stats.total_games).expect("Unable to write to results file");
+                        writeln!(results_file, "Average attacker moves: {:.2}", guard_stats.total_attacker_moves as f64 / guard_stats.total_games as f64).expect("Unable to write to results file");
+                        writeln!(results_file, "Average defender moves: {:.2}", guard_stats.total_defender_moves as f64 / guard_stats.total_games as f64).expect("Unable to write to results file");
+                        writeln!(results_file, "Average move duration for attacker: {:?}", guard_stats.move_durations_attacker.iter().sum::<Duration>() / guard_stats.move_durations_attacker.len() as u32).expect("Unable to write to results file");
+                        writeln!(results_file, "Average move duration for defender: {:?}", guard_stats.move_durations_defender.iter().sum::<Duration>() / guard_stats.move_durations_defender.len() as u32).expect("Unable to write to results file");
+                        writeln!(results_file, "Attacker wins: {}", guard_stats.attacker_wins).expect("Unable to write to results file");
+                        writeln!(results_file, "Defender wins: {}", guard_stats.defender_wins).expect("Unable to write to results file");
+                        drop(results_file);
 
                         // Shutdown all client streams
                         let mut clients_lock = clients.lock().unwrap();
