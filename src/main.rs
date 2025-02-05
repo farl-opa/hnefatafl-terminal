@@ -8,6 +8,7 @@ mod brandubh;
 use brandubh::{GameState, Cell, CellType};
 use std::fs::File;
 use std::fs::OpenOptions;
+use std::time::{Instant, Duration};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Move {
@@ -27,6 +28,17 @@ struct GameStateResponse {
     winner: Option<CellType>,
 }
 
+struct GameStats {
+    game_id: u32,
+    total_games: u32,
+    total_attacker_moves: u32,
+    total_defender_moves: u32,
+    attacker_wins: u32,
+    defender_wins: u32,
+    move_durations_attacker: Vec<Duration>,
+    move_durations_defender: Vec<Duration>,
+}
+
 fn process_move(
     game: &mut GameState,
     game_move: Move,
@@ -37,6 +49,8 @@ fn process_move(
     if game.current_turn.cell_type != role {
         return Err("It's not your turn".to_string());
     }
+
+    let start_time = Instant::now();
 
     game.process_click(game_move.from.0, game_move.from.1)?;
     if let Err(err) = game.process_click(game_move.to.0, game_move.to.1) {
@@ -55,6 +69,18 @@ fn process_move(
         println!("Game over! Winner: {:?}", game.winner);
         return Err(format!("Invalid move: {}", err));
     }
+
+    let duration = start_time.elapsed();
+
+    // Store the move duration
+    let mut stats_lock = stats.lock().unwrap();
+    if role == CellType::Attacker {
+        stats_lock.move_durations_attacker.push(duration);
+    } else {
+        stats_lock.move_durations_defender.push(duration);
+    }
+    drop(stats_lock);
+
 
     match role {
         CellType::Attacker => game.attacker_moves += 1,
@@ -155,7 +181,7 @@ fn handle_client(
                     }
                     game.winner = None;
 
-                    if guard_stats.total_games >= 50 {
+                    if guard_stats.total_games >= 5 {
                         println!("All games finished for session {}.", guard_stats.game_id);
                         println!(
                             "Average attacker moves: {:.2}",
@@ -164,6 +190,14 @@ fn handle_client(
                         println!(
                             "Average defender moves: {:.2}",
                             guard_stats.total_defender_moves as f64 / guard_stats.total_games as f64
+                        );
+                        println!(
+                            "Average move duration for attacker: {:?}",
+                            guard_stats.move_durations_attacker.iter().sum::<Duration>() / guard_stats.move_durations_attacker.len() as u32
+                        );
+                        println!(
+                            "Average move duration for defender: {:?}",
+                            guard_stats.move_durations_defender.iter().sum::<Duration>() / guard_stats.move_durations_defender.len() as u32
                         );
                         println!("Attacker wins: {}", guard_stats.attacker_wins);
                         println!("Defender wins: {}", guard_stats.defender_wins);
@@ -191,6 +225,9 @@ fn handle_client(
         }
     }
 
+    if let Err(e) = stream.shutdown(Shutdown::Both) {
+        eprintln!("Failed to shutdown client {}: {}", client_id, e);
+    }
     clients.lock().unwrap().remove(&client_id);
     println!("Client {} disconnected", client_id);
 }
@@ -260,15 +297,6 @@ fn initialize_game(
     }    
 }
 
-struct GameStats {
-    game_id: u32,
-    total_games: u32,
-    total_attacker_moves: u32,
-    total_defender_moves: u32,
-    attacker_wins: u32,
-    defender_wins: u32,
-}
-
 fn main() -> io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:7878")?;
     let mut pending_clients: Vec<TcpStream> = Vec::new();
@@ -296,6 +324,8 @@ fn main() -> io::Result<()> {
                     total_defender_moves: 0,
                     attacker_wins: 0,
                     defender_wins: 0,
+                    move_durations_attacker: Vec::new(),
+                    move_durations_defender: Vec::new(),
                 }));
 
                 {

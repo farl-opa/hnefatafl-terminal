@@ -43,7 +43,7 @@ Hnefatafl Terminal is a terminal-based implementation of the ancient Viking boar
     ```sh
     cargo run
     ```
-4. For the game to start, connect two clients from two different terminals.
+3. For the game to start, connect two clients from two different terminals. For each pair of clients connected, a new session will start in a different thread, what allows the user to run multiple game sessions at the same time.
 
 ## Project Structure
 
