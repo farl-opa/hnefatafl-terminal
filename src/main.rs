@@ -191,23 +191,28 @@ fn handle_client(
                 if let Some(winner) = game.winner {
                     let mut guard_stats = stats.lock().unwrap();
                     guard_stats.total_games += 1;
-                    guard_stats.total_attacker_moves += game.attacker_moves;
-                    guard_stats.total_defender_moves += game.defender_moves;
+                    
                     match winner.cell_type {
-                        CellType::Attacker => guard_stats.attacker_wins += 1,
-                        CellType::Defender => guard_stats.defender_wins += 1,
+                        CellType::Attacker => {
+                            guard_stats.attacker_wins += 1;
+                            guard_stats.total_attacker_moves += game.attacker_moves;
+                        },
+                        CellType::Defender => {
+                            guard_stats.defender_wins += 1;
+                            guard_stats.total_defender_moves += game.defender_moves;
+                        },
                         _ => {}
                     }
                     game.winner = None;
 
-                    if guard_stats.total_games >= 50 {
+                    if guard_stats.total_games >= 300 {
                         println!("All games finished for session {}.", guard_stats.game_id);
                         println!(
-                            "Average attacker moves: {:.2}",
+                            "Average attacker moves per winning game: {:.2}",
                             guard_stats.total_attacker_moves as f64 / guard_stats.total_games as f64
                         );
                         println!(
-                            "Average defender moves: {:.2}",
+                            "Average defender moves per winning game: {:.2}",
                             guard_stats.total_defender_moves as f64 / guard_stats.total_games as f64
                         );
                         println!(
@@ -225,8 +230,8 @@ fn handle_client(
                         let mut results_file = File::create(&results_file_name).expect("Unable to create results file");
                         writeln!(results_file, "Session ID: {}", guard_stats.game_id).expect("Unable to write to results file");
                         writeln!(results_file, "Total games: {}", guard_stats.total_games).expect("Unable to write to results file");
-                        writeln!(results_file, "Average attacker moves: {:.2}", guard_stats.total_attacker_moves as f64 / guard_stats.total_games as f64).expect("Unable to write to results file");
-                        writeln!(results_file, "Average defender moves: {:.2}", guard_stats.total_defender_moves as f64 / guard_stats.total_games as f64).expect("Unable to write to results file");
+                        writeln!(results_file, "Average attacker moves per winning game: {:.2}", guard_stats.total_attacker_moves as f64 / guard_stats.total_games as f64).expect("Unable to write to results file");
+                        writeln!(results_file, "Average defender moves per winning game: {:.2}", guard_stats.total_defender_moves as f64 / guard_stats.total_games as f64).expect("Unable to write to results file");
                         writeln!(results_file, "Average move duration for attacker: {:?}", guard_stats.move_durations_attacker.iter().sum::<Duration>() / guard_stats.move_durations_attacker.len() as u32).expect("Unable to write to results file");
                         writeln!(results_file, "Average move duration for defender: {:?}", guard_stats.move_durations_defender.iter().sum::<Duration>() / guard_stats.move_durations_defender.len() as u32).expect("Unable to write to results file");
                         writeln!(results_file, "Attacker wins: {}", guard_stats.attacker_wins).expect("Unable to write to results file");
