@@ -62,7 +62,7 @@ pub struct GameState {
     pub click_count: u32,      // Number of clicks
     pub from: (usize, usize),  // From position
     pub board_message: String, // Message to display on the board
-    pub game_title: String,
+    pub game_title: String,    // Game title
     pub last_click: (usize, usize), // Last clicked cell
     pub id: usize,
     pub move_done: bool,
@@ -81,18 +81,21 @@ impl GameState {
                     is_throne: false,
                     is_selected: false,
                     is_possible_move: false,
-                }; 7
+                }; 11
             ];
-            7
+            11
         ];
 
         // Place attackers (black)
         for &pos in &[ 
-            (0, 3),
-            (1, 3),
-            (3, 0), (3, 1), (3, 5), (3, 6),
-            (5, 3),
-            (6, 3),
+            (0, 3), (0, 4), (0, 5), (0, 6), (0, 7),
+            (1, 5),
+            (3, 0), (4, 0), (5, 0), (6, 0), (7, 0),
+            (5, 1),
+            (10, 3), (10, 4), (10, 5), (10, 6), (10, 7),
+            (9, 5),
+            (3, 10), (4, 10), (5, 10), (6, 10), (7, 10),
+            (5, 9),
         ] {
             board[pos.0][pos.1] = Cell {
                 cell_type: CellType::Attacker,
@@ -105,9 +108,11 @@ impl GameState {
 
         // Place defenders (white)
         for &pos in &[ 
-            (2, 3),
-            (3, 2), (3, 4),            
-            (4, 3), 
+            (3, 5),
+            (4, 4), (4, 5), (4, 6),            
+            (5, 3), (5, 4), (5, 6), (5, 7),
+            (6, 4), (6, 5), (6, 6),
+            (7, 5),
         ] {
             board[pos.0][pos.1] = Cell {
                 cell_type: CellType::Defender,
@@ -120,7 +125,7 @@ impl GameState {
 
         // Place corners (marking corner cells with is_corner = true)
         for &pos in &[ 
-            (0, 0), (0, 6), (6, 0), (6, 6)
+            (0, 0), (0, 10), (10, 0), (10, 10)
         ] {
             board[pos.0][pos.1] = Cell {
                 cell_type: CellType::Empty, // Corner is empty but still marked as a corner
@@ -132,7 +137,7 @@ impl GameState {
         }
 
         // Place the king (with a specific cell type)
-        board[3][3] = Cell {
+        board[5][5] = Cell {
             cell_type: CellType::King,
             is_corner: false,
             is_throne: true,
@@ -155,7 +160,7 @@ impl GameState {
             click_count: 1,
             from: (0, 0),
             board_message: "Current turn: Attacker".to_string(),
-            game_title:"Brandubh".to_string(),
+            game_title: "Copenhagen".to_string(),
             last_click: (0, 0),
             id: id,
             move_done: false,
@@ -187,28 +192,28 @@ impl GameState {
                 for cell in self.board.iter_mut().flat_map(|r| r.iter_mut()) {
                         cell.is_possible_move = false;
                     }
-                return Err("Cannot select an empty cell.".to_string());
+                return Ok(());
             }
             else if clicked_cell.cell_type == CellType::Defender && self.current_turn.cell_type == CellType::Attacker {
                 self.board[self.last_click.0][self.last_click.1].is_selected = false;
                 for cell in self.board.iter_mut().flat_map(|r| r.iter_mut()) {
                         cell.is_possible_move = false;
                     }
-                return Err("Cannot move opponents piece.".to_string());
+                return Ok(());
             }
             else if clicked_cell.cell_type == CellType::King && self.current_turn.cell_type == CellType::Attacker {
                 self.board[self.last_click.0][self.last_click.1].is_selected = false;
                 for cell in self.board.iter_mut().flat_map(|r| r.iter_mut()) {
                         cell.is_possible_move = false;
                     }
-                return Err("Cannot move opponents piece.".to_string());
+                return Ok(());
             }
             else if clicked_cell.cell_type == CellType::Attacker && self.current_turn.cell_type == CellType::Defender {
                 self.board[self.last_click.0][self.last_click.1].is_selected = false;
                 for cell in self.board.iter_mut().flat_map(|r| r.iter_mut()) {
                         cell.is_possible_move = false;
                     }
-                return Err("Cannot move opponents piece.".to_string());
+                return Ok(());
             }
             else {
                 self.click_count += 1;
@@ -223,12 +228,52 @@ impl GameState {
             }
         } else {
             // Second click: Select an empty cell to move to
-            if clicked_cell.cell_type != CellType::Empty {
+            if clicked_cell.cell_type == CellType::Defender && self.current_turn.cell_type == CellType::Attacker {
                 self.board[self.last_click.0][self.last_click.1].is_selected = false;
                 for cell in self.board.iter_mut().flat_map(|r| r.iter_mut()) {
                         cell.is_possible_move = false;
                     }
-                return Err("The selected cell is not empty.".to_string());
+                return Ok(());
+            }
+            else if clicked_cell.cell_type == CellType::King && self.current_turn.cell_type == CellType::Attacker {
+                self.board[self.last_click.0][self.last_click.1].is_selected = false;
+                for cell in self.board.iter_mut().flat_map(|r| r.iter_mut()) {
+                        cell.is_possible_move = false;
+                    }
+                return Ok(());
+            }
+            else if clicked_cell.cell_type == CellType::Attacker && self.current_turn.cell_type == CellType::Defender {
+                self.board[self.last_click.0][self.last_click.1].is_selected = false;
+                for cell in self.board.iter_mut().flat_map(|r| r.iter_mut()) {
+                        cell.is_possible_move = false;
+                    }
+                return Ok(());
+            }
+            else if clicked_cell.cell_type != CellType::Empty {
+
+                if self.board[self.last_click.0][self.last_click.1].cell_type == clicked_cell.cell_type {
+                    for cell in self.board.iter_mut().flat_map(|r| r.iter_mut()) {
+                        cell.is_possible_move = false;
+                    }
+                    self.board[self.last_click.0][self.last_click.1].is_selected = false;  
+                    self.board[row][col].is_selected = true;                                                    
+                    self.last_click = (row, col);
+                    self.from = (row, col);
+                    let possible_moves = self.calculate_valid_moves(self.from);
+
+                    for cell in possible_moves {
+                        self.board[cell.0][cell.1].is_possible_move = true;
+                    }
+                    self.move_done = false;
+                } else {
+                    self.click_count -= 1;
+                    self.board[self.last_click.0][self.last_click.1].is_selected = false;
+                    for cell in self.board.iter_mut().flat_map(|r| r.iter_mut()) {
+                            cell.is_possible_move = false;
+                        }
+                }
+                
+                return Ok(());
             }
             else if clicked_cell.is_corner && self.board[self.from.0][self.from.1].cell_type != CellType::King {
                 self.click_count -= 1;
@@ -236,7 +281,7 @@ impl GameState {
                 for cell in self.board.iter_mut().flat_map(|r| r.iter_mut()) {
                         cell.is_possible_move = false;
                     }
-                return Err("Cannot move to a corner.".to_string());
+                return Ok(());
             }
             else if clicked_cell.is_throne && self.board[self.from.0][self.from.1].cell_type != CellType::King {
                 self.click_count -= 1;
@@ -244,7 +289,7 @@ impl GameState {
                 for cell in self.board.iter_mut().flat_map(|r| r.iter_mut()) {
                         cell.is_possible_move = false;
                     }
-                return Err("Only the king can move to the throne".to_string());
+                return Ok(());
             }
             else {
                 // Make the move
@@ -315,7 +360,7 @@ impl GameState {
         }
 
         if cell.cell_type != CellType::King {
-            valid_moves.retain(|&x| x != (3, 3));
+            valid_moves.retain(|&x| x != (5, 5));
         }
         
         valid_moves
@@ -449,7 +494,8 @@ impl GameState {
                         && (self.board[nnx][nny].cell_type == cell.cell_type 
                             || self.board[nnx][nny].is_corner 
                             || self.board[nnx][nny].cell_type == CellType::King
-                            || self.board[nnx][nny].cell_type == CellType::Defender)
+                            || self.board[nnx][nny].cell_type == CellType::Defender
+                            || self.board[nnx][nny].is_throne)
                     {
                         // Capture the opponent's piece by setting it to Empty
                         self.board[nx][ny] = Cell {
@@ -465,7 +511,8 @@ impl GameState {
                     if self.board[nx][ny].cell_type == opposite
                         && self.is_within_bounds((nnx, nny))
                         && (self.board[nnx][nny].cell_type == cell.cell_type 
-                            || self.board[nnx][nny].is_corner)
+                            || self.board[nnx][nny].is_corner
+                            || (self.board[nnx][nny].is_throne && self.board[nnx][nny].cell_type == CellType::Empty))
                     {
                         // Capture the opponent's piece by setting it to Empty
                         self.board[nx][ny] = Cell {
@@ -567,7 +614,7 @@ impl GameState {
                     (kr, kc + 1),
                 ];
                 
-                if king_pos == Some((3, 3)) {
+                if king_pos == Some((5, 5)) {
                     if neighbors
                         .iter()
                         .filter(|&&(nr, nc)| self.is_within_bounds((nr, nc)))
@@ -581,7 +628,7 @@ impl GameState {
                             is_possible_move: false,
                         }); // Attackers win
                     }
-                } else if king_pos == Some((2, 3)) || king_pos == Some((3, 2)) || king_pos == Some((3, 4)) || king_pos == Some((4, 3)) {
+                } else if king_pos == Some((4, 5)) || king_pos == Some((5, 4)) || king_pos == Some((5, 6)) || king_pos == Some((6, 5)) {
                     if neighbors
                         .iter()
                         .filter(|&&(nr, nc)| self.is_within_bounds((nr, nc)) && (nr, nc) != (5, 5))
@@ -659,30 +706,7 @@ impl GameState {
                 is_possible_move: false,
             }); // Attackers win
         }
-
-        // Check if there are no valid moves for any attacker
-        let no_valid_moves = self.board.iter().enumerate().all(|(r, row)| {
-            row.iter().enumerate().all(|(c, cell)| {
-                if cell.cell_type == CellType::Attacker {
-                    // Check if this attacker has any valid moves
-                    self.calculate_valid_moves((r, c)).is_empty()
-                } else {
-                    true
-                }
-            })
-        });
-        
-        if no_valid_moves {
-            return Some(Cell {
-                cell_type: CellType::Defender,
-                is_corner: false,
-                is_throne: false,
-                is_selected: false,
-                is_possible_move: false,
-            }); // Defenders win
-        }
     
         None
     }
-    
 }

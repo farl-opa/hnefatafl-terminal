@@ -4,8 +4,16 @@ use std::net::{TcpListener, TcpStream, Shutdown};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use serde::{Deserialize, Serialize};
+
+// 7x7 version
 mod brandubh;
 use brandubh::{GameState, Cell, CellType};
+
+// 11x11 version
+//mod copenhagen;
+//use copenhagen::{GameState, Cell, CellType};
+
+
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::time::{Instant, Duration};
