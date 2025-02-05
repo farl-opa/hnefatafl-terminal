@@ -141,6 +141,17 @@ fn process_move(
         println!("Game over! Winner: {:?}", winner.cell_type);
         println!("Attacker moves: {}", game.attacker_moves);
         println!("Defender moves: {}", game.defender_moves);
+
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open(&file_name)
+            .map_err(|e| format!("Failed to open {}: {}", file_name, e))?;
+        let win_string = format!("Winner: {:?}", winner.cell_type);
+        file.write_all(win_string.as_bytes()).map_err(|e| e.to_string())?;
+        file.write_all(b"\n").map_err(|e| e.to_string())?;
+        file.flush().map_err(|e| e.to_string())?;
+        drop(file);
     }
 
     Ok(())
