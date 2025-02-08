@@ -205,7 +205,7 @@ fn handle_client(
                     }
                     game.winner = None;
 
-                    if guard_stats.total_games >= 300 {
+                    if guard_stats.total_games >= 100 {
                         println!("All games finished for session {}.", guard_stats.game_id);
                         println!(
                             "Average attacker moves per winning game: {:.2}",
@@ -407,4 +407,5 @@ fn main() -> io::Result<()> {
     }
 
     Ok(())
+
 }

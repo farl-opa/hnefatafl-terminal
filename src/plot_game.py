@@ -33,6 +33,8 @@ def plot_board(board, ax):
     handles = [plt.Rectangle((0, 0), 1, 1, color=colors[piece]) for piece in colors]
     labels = list(colors.keys())
     ax.legend(handles, labels, loc='upper right', bbox_to_anchor=(1.25, 1))
+    # Set title
+    ax.set_title('Hnefatafl Game Animation')
 
 def animate(i, game_states, ax):
     plot_board(game_states[i]["board"], ax)
@@ -43,11 +45,8 @@ def main(file_path):
     fig, ax = plt.subplots(figsize=(10, 8))
     ani = animation.FuncAnimation(fig, animate, frames=len(game_states), fargs=(game_states, ax), interval=500)
     
-    # Set title
-    ax.set_title('Hnefatafl Game Animation')
-    
     plt.show()
 
 if __name__ == "__main__":
-    file_path = "board_state_game_1_1.txt"
+    file_path = "results/board_state_game_1_12.txt"
     main(file_path)
