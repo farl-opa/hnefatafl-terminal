@@ -59,8 +59,7 @@ fn process_move(
     }
 
     let start_time = Instant::now();
-
-    game.process_click(game_move.from.0, game_move.from.1)?;
+    
     if let Err(err) = game.process_click(game_move.to.0, game_move.to.1) {
         game.winner = Some(Cell {
             cell_type: match role {
@@ -77,6 +76,7 @@ fn process_move(
         println!("Game over! Winner: {:?}", game.winner);
         return Err(format!("Invalid move: {}", err));
     }
+    game.process_click(game_move.from.0, game_move.from.1)?;
 
     let duration = start_time.elapsed();
 
