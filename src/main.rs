@@ -59,7 +59,22 @@ fn process_move(
     }
 
     let start_time = Instant::now();
-    
+    if let Err(err) = game.process_click(game_move.from.0, game_move.from.1) {
+        game.winner = Some(Cell {
+            cell_type: match role {
+                CellType::Attacker => CellType::Defender,
+                CellType::Defender => CellType::Attacker,
+                _ => CellType::Empty,
+            },
+            is_corner: false,
+            is_throne: false,
+            is_selected: false,
+            is_possible_move: false,
+        });
+        println!("Invalid move from {}: {}", role, err);
+        println!("Game over! Winner: {:?}", game.winner);
+        return Err(format!("Invalid move: {}", err));
+    }
     if let Err(err) = game.process_click(game_move.to.0, game_move.to.1) {
         game.winner = Some(Cell {
             cell_type: match role {
@@ -76,7 +91,7 @@ fn process_move(
         println!("Game over! Winner: {:?}", game.winner);
         return Err(format!("Invalid move: {}", err));
     }
-    game.process_click(game_move.from.0, game_move.from.1)?;
+    
 
     let duration = start_time.elapsed();
 
@@ -205,7 +220,7 @@ fn handle_client(
                     }
                     game.winner = None;
 
-                    if guard_stats.total_games >= 100 {
+                    if guard_stats.total_games >= 500 {
                         println!("All games finished for session {}.", guard_stats.game_id);
                         println!(
                             "Average attacker moves per winning game: {:.2}",
