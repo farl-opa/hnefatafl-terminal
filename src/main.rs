@@ -45,6 +45,8 @@ struct GameStats {
     defender_wins: u32,
     move_durations_attacker: Vec<Duration>,
     move_durations_defender: Vec<Duration>,
+    attacker_moves: Vec<u32>,
+    defender_moves: Vec<u32>,
 }
 
 fn process_move(
@@ -211,21 +213,24 @@ fn handle_client(
                         CellType::Attacker => {
                             guard_stats.attacker_wins += 1;
                             guard_stats.total_attacker_moves += game.attacker_moves;
+                            guard_stats.attacker_moves.push(game.attacker_moves);
                         },
                         CellType::Defender => {
                             guard_stats.defender_wins += 1;
                             guard_stats.total_defender_moves += game.defender_moves;
+                            guard_stats.defender_moves.push(game.defender_moves);
                         },
                         _ => {}
                     }
                     game.winner = None;
 
-                    if guard_stats.total_games >= 500 {
+                    if guard_stats.total_games >= 100 {
                         println!("All games finished for session {}.", guard_stats.game_id);
                         println!(
                             "Average attacker moves per winning game: {:.2}",
                             guard_stats.total_attacker_moves as f64 / guard_stats.total_games as f64
                         );
+
                         println!(
                             "Average defender moves per winning game: {:.2}",
                             guard_stats.total_defender_moves as f64 / guard_stats.total_games as f64
@@ -377,6 +382,8 @@ fn main() -> io::Result<()> {
                     defender_wins: 0,
                     move_durations_attacker: Vec::new(),
                     move_durations_defender: Vec::new(),
+                    attacker_moves: Vec::new(),
+                    defender_moves: Vec::new(),
                 }));
 
                 {
