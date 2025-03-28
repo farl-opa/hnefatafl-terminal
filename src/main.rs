@@ -97,6 +97,18 @@ fn process_move(
         _ => {}
     }
 
+    let total_moves = game.attacker_moves + game.defender_moves;
+    if total_moves >= 100 {
+        println!("Game over! It's a draw after 100 moves.");
+        game.winner = Some(Cell {
+            cell_type: CellType::Empty, // Represents a draw
+            is_corner: false,
+            is_throne: false,
+            is_selected: false,
+            is_possible_move: false,
+        });
+    }
+
     let mut board_state = HashMap::new();
     for (row_idx, row) in game.board.iter().enumerate() {
         for (col_idx, cell) in row.iter().enumerate() {

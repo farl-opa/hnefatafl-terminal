@@ -68,6 +68,7 @@ pub struct GameState {
     pub move_done: bool,
     pub attacker_moves: u32,
     pub defender_moves: u32,
+    pub king_capture: bool,
 }
 
 impl GameState {
@@ -161,6 +162,7 @@ impl GameState {
             move_done: false,
             attacker_moves: 0,
             defender_moves: 0,
+            king_capture: false,
         }
     }
     
@@ -426,7 +428,11 @@ impl GameState {
         let cell = self.board[pos.0][pos.1].clone(); // Clone the current cell (with cell_type and is_corner)
     
         for (i, &(nx, ny)) in neighbors.iter().enumerate() {
+            
             if self.is_within_bounds((nx, ny)) {
+                if self.board[nx][ny].cell_type == CellType::King{
+                    self.king_capture = true;
+                }
                 let (nnx, nny) = match i {
                     0 => if nx > 0 { (nx - 1, ny) } else { continue },      // Up (check the cell above the neighbor)
                     1 => (nx + 1, ny),                                      // Down (check the cell below the neighbor)
@@ -535,7 +541,7 @@ impl GameState {
         true
     }
 
-    fn check_win_condition(&self) -> Option<Cell> {
+    fn check_win_condition(&mut self) -> Option<Cell> {
         // Check if the king reached an edge (the edges are corners)
         if self.board[0][self.board.len() - 1].cell_type == CellType::King
             || self.board[self.board.len() - 1][0].cell_type == CellType::King
@@ -558,7 +564,7 @@ impl GameState {
             .enumerate()
             .find_map(|(r, row)| row.iter().position(|c| c.cell_type == CellType::King).map(|c| (r, c)));
     
-        if self.current_turn.cell_type == CellType::Attacker {
+        if self.current_turn.cell_type == CellType::Attacker || self.king_capture {
             if let Some((kr, kc)) = king_pos {
                 let neighbors = [
                     (kr.wrapping_sub(1), kc),
@@ -636,6 +642,8 @@ impl GameState {
 
                 
             }
+            self.king_capture = false;
+
         }
 
         // Check if there are no valid moves for any defender
