@@ -45,6 +45,8 @@ struct GameStats {
     defender_wins: u32,
     move_durations_attacker: Vec<Duration>,
     move_durations_defender: Vec<Duration>,
+    attacker_moves: Vec<u32>,
+    defender_moves: Vec<u32>,
 }
 
 fn process_move(
@@ -59,8 +61,22 @@ fn process_move(
     }
 
     let start_time = Instant::now();
-
-    game.process_click(game_move.from.0, game_move.from.1)?;
+    if let Err(err) = game.process_click(game_move.from.0, game_move.from.1) {
+        game.winner = Some(Cell {
+            cell_type: match role {
+                CellType::Attacker => CellType::Defender,
+                CellType::Defender => CellType::Attacker,
+                _ => CellType::Empty,
+            },
+            is_corner: false,
+            is_throne: false,
+            is_selected: false,
+            is_possible_move: false,
+        });
+        println!("Invalid move from {}: {}", role, err);
+        println!("Game over! Winner: {:?}", game.winner);
+        return Err(format!("Invalid move: {}", err));
+    }
     if let Err(err) = game.process_click(game_move.to.0, game_move.to.1) {
         game.winner = Some(Cell {
             cell_type: match role {
@@ -77,6 +93,7 @@ fn process_move(
         println!("Game over! Winner: {:?}", game.winner);
         return Err(format!("Invalid move: {}", err));
     }
+    
 
     let duration = start_time.elapsed();
 
@@ -208,10 +225,12 @@ fn handle_client(
                         CellType::Attacker => {
                             guard_stats.attacker_wins += 1;
                             guard_stats.total_attacker_moves += game.attacker_moves;
+                            guard_stats.attacker_moves.push(game.attacker_moves);
                         },
                         CellType::Defender => {
                             guard_stats.defender_wins += 1;
                             guard_stats.total_defender_moves += game.defender_moves;
+                            guard_stats.defender_moves.push(game.defender_moves);
                         },
                         _ => {}
                     }
@@ -223,6 +242,7 @@ fn handle_client(
                             "Average attacker moves per winning game: {:.2}",
                             guard_stats.total_attacker_moves as f64 / guard_stats.total_games as f64
                         );
+
                         println!(
                             "Average defender moves per winning game: {:.2}",
                             guard_stats.total_defender_moves as f64 / guard_stats.total_games as f64
@@ -374,6 +394,8 @@ fn main() -> io::Result<()> {
                     defender_wins: 0,
                     move_durations_attacker: Vec::new(),
                     move_durations_defender: Vec::new(),
+                    attacker_moves: Vec::new(),
+                    defender_moves: Vec::new(),
                 }));
 
                 {
