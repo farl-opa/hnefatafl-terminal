@@ -43,6 +43,7 @@ struct GameStats {
     total_defender_moves: u32,
     attacker_wins: u32,
     defender_wins: u32,
+    ties: u32,
     move_durations_attacker: Vec<Duration>,
     move_durations_defender: Vec<Duration>,
     attacker_moves: Vec<u32>,
@@ -145,7 +146,7 @@ fn process_move(
     
     let file_name = {
         let stats_lock = stats.lock().unwrap();
-        format!("results/board_state_game_{}_{}.txt", stats_lock.game_id, stats_lock.total_games + 1)
+        format!("results/board_state_session_{}_game_{}.txt", stats_lock.game_id, stats_lock.total_games + 1)
     };
 
     let mut file = OpenOptions::new()
@@ -167,7 +168,7 @@ fn process_move(
     }
 
     if let Some(winner) = game.winner {
-        println!("Game over! Winner: {:?}", winner.cell_type);
+        println!("Session {} game over! Winner: {:?}", stats.lock().unwrap().game_id, winner.cell_type);
         println!("Attacker moves: {}", game.attacker_moves);
         println!("Defender moves: {}", game.defender_moves);
 
@@ -232,6 +233,7 @@ fn handle_client(
                             guard_stats.total_defender_moves += game.defender_moves;
                             guard_stats.defender_moves.push(game.defender_moves);
                         },
+                        CellType::Empty => guard_stats.ties += 1,
                         _ => {}
                     }
                     game.winner = None;
@@ -240,12 +242,12 @@ fn handle_client(
                         println!("All games finished for session {}.", guard_stats.game_id);
                         println!(
                             "Average attacker moves per winning game: {:.2}",
-                            guard_stats.total_attacker_moves as f64 / guard_stats.total_games as f64
+                            guard_stats.total_attacker_moves as f64 / guard_stats.attacker_wins as f64
                         );
 
                         println!(
                             "Average defender moves per winning game: {:.2}",
-                            guard_stats.total_defender_moves as f64 / guard_stats.total_games as f64
+                            guard_stats.total_defender_moves as f64 / guard_stats.defender_wins as f64
                         );
                         println!(
                             "Average move duration for attacker: {:?}",
@@ -257,6 +259,7 @@ fn handle_client(
                         );
                         println!("Attacker wins: {}", guard_stats.attacker_wins);
                         println!("Defender wins: {}", guard_stats.defender_wins);
+                        println!("Ties: {}", guard_stats.ties);
 
                         let results_file_name = format!("results_session_{}.txt", guard_stats.game_id);
                         let mut results_file = File::create(&results_file_name).expect("Unable to create results file");
@@ -268,6 +271,7 @@ fn handle_client(
                         writeln!(results_file, "Average move duration for defender: {:?}", guard_stats.move_durations_defender.iter().sum::<Duration>() / guard_stats.move_durations_defender.len() as u32).expect("Unable to write to results file");
                         writeln!(results_file, "Attacker wins: {}", guard_stats.attacker_wins).expect("Unable to write to results file");
                         writeln!(results_file, "Defender wins: {}", guard_stats.defender_wins).expect("Unable to write to results file");
+                        writeln!(results_file, "Ties: {}", guard_stats.ties).expect("Unable to write to results file");
                         drop(results_file);
 
                         // Shutdown all client streams
@@ -345,7 +349,7 @@ fn initialize_game(
     
     let file_name = {
         let stats_lock = stats.lock().unwrap();
-        format!("results/board_state_game_{}_{}.txt", stats_lock.game_id, stats_lock.total_games + 1)
+        format!("results/board_state_session_{}_game_{}.txt", stats_lock.game_id, stats_lock.total_games + 1)
     };
 
     let mut file = File::create(&file_name).expect("Unable to create file");
@@ -392,6 +396,7 @@ fn main() -> io::Result<()> {
                     total_defender_moves: 0,
                     attacker_wins: 0,
                     defender_wins: 0,
+                    ties: 0,
                     move_durations_attacker: Vec::new(),
                     move_durations_defender: Vec::new(),
                     attacker_moves: Vec::new(),
