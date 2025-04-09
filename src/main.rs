@@ -61,7 +61,6 @@ fn process_move(
         return Err("It's not your turn".to_string());
     }
 
-    let start_time = Instant::now();
     if let Err(err) = game.process_click(game_move.from.0, game_move.from.1) {
         game.winner = Some(Cell {
             cell_type: match role {
@@ -95,19 +94,6 @@ fn process_move(
         return Err(format!("Invalid move: {}", err));
     }
     
-
-    let duration = start_time.elapsed();
-
-    // Store the move duration
-    let mut stats_lock = stats.lock().unwrap();
-    if role == CellType::Attacker {
-        stats_lock.move_durations_attacker.push(duration);
-    } else {
-        stats_lock.move_durations_defender.push(duration);
-    }
-    drop(stats_lock);
-
-
     match role {
         CellType::Attacker => game.attacker_moves += 1,
         CellType::Defender => game.defender_moves += 1,
@@ -198,6 +184,10 @@ fn handle_client(
     let mut buffer = [0; 1024];
 
     loop {
+        // Start timing before waiting for the move
+        let move_start_time = Instant::now();
+
+        // Wait for the client's move
         let size = match stream.read(&mut buffer) {
             Ok(0) => break,
             Ok(size) => size,
@@ -207,6 +197,9 @@ fn handle_client(
             }
         };
 
+        // Stop timing when the move is received
+        let move_duration = move_start_time.elapsed();
+
         let received_str = String::from_utf8_lossy(&buffer[..size]);
         match serde_json::from_str::<Move>(&received_str) {
             Ok(game_move) => {
@@ -215,6 +208,14 @@ fn handle_client(
                     let error_message = format!("{{\"error\":\"{}\"}}", err);
                     if let Err(e) = stream.write_all(error_message.as_bytes()) {
                         eprintln!("Failed to write error to client {}: {}", client_id, e);
+                    }
+                } else {
+                    // Store the move duration in the stats
+                    let mut stats_lock = stats.lock().unwrap();
+                    if role == CellType::Attacker {
+                        stats_lock.move_durations_attacker.push(move_duration);
+                    } else {
+                        stats_lock.move_durations_defender.push(move_duration);
                     }
                 }
 
@@ -238,7 +239,7 @@ fn handle_client(
                     }
                     game.winner = None;
 
-                    if guard_stats.total_games >= 100 {
+                    if guard_stats.total_games >= 20 {
                         println!("All games finished for session {}.", guard_stats.game_id);
                         println!(
                             "Average attacker moves per winning game: {:.2}",

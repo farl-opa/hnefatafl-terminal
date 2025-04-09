@@ -1,0 +1,9 @@
+Session ID: 14
+Total games: 100
+Average attacker moves per winning game: 0.22
+Average defender moves per winning game: 8.25
+Average move duration for attacker: 23.131µs
+Average move duration for defender: 31.312µs
+Attacker wins: 3
+Defender wins: 96
+Ties: 1
