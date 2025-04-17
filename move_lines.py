@@ -158,7 +158,7 @@ def plot_heatmap(data, title, cmap='Reds'):
     plt.show()
 
 # === USAGE ===
-folder_path = "tournament_results/results_round_1"  # Replace this with your folder
+folder_path = "tournament_results/a4_defender"  # Replace this with your folder
 move_data, att_capture_heatmap, def_capture_heatmap, king_capture_heatmap = analyze_folder(folder_path)
 
 # Plotting
